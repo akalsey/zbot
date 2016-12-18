@@ -15,10 +15,11 @@ var zmachine = 'http://localhost:'+port+'/zmachine/';
 
 app.use('/zmachine', require('../zmachine-api/src/app'));
 
-//var sparkbearer = 'YzA3OGYwMTItYjBhOS00NTA0LTg3NDYtZTY4MjA4ZWIwYzMzOTNhM2QzYzItYjBj';
-
 app.use(bodyParser.json()); // to support JSON-encoded bodies
 
+// A Tropo text message webapi listener. Each incoming caller ID is treated as
+// a different game.
+// Set your Tropo app to WebAPI with an app URL of <your-server>/tropo
 app.post('/tropo', function(req, res) {
     if (req.body.session.to.channel == 'TEXT') {
       var message = req.body.session.initialText;
@@ -31,7 +32,7 @@ app.post('/tropo', function(req, res) {
           res.send(troposdk.TropoJSON(tropo));
         })
         .catch(function (err) {
-            console.log("something went wrong in the action " + err);
+            console.log("Tropo action failed " + err);
         });
     } else {
       tropo.reject();
@@ -39,6 +40,11 @@ app.post('/tropo', function(req, res) {
     }
 });
 
+// A Cisco Spark message webhook listener. Each Spark room is treated as
+// a different game.
+// Create a Message webhook as your bot with a URL of <your-server>/spark and
+// no room filter
+// Set the env variable CISCOSPARK_ACCESS_TOKEN to your bot's access token
 app.post('/spark', function(req, res) {
     var session = req.body.data.roomId;
 
@@ -47,12 +53,10 @@ app.post('/spark', function(req, res) {
         return performAction(message.text, session);
       })
       .then(reply => {
-        //var md = reply.replace(/^/g, "`");
         var md = reply.replace(/\n/, "`\n");
         md = "`" + md;
         md = md.replace(/\n/g, "<br/>");
         res.send(md);
-        //res.send(reply);
         return ciscospark.messages.create({
           markdown: md,
           text: reply,
@@ -60,7 +64,7 @@ app.post('/spark', function(req, res) {
         });
       })
       .catch(function (err) {
-          console.log("something went wrong in the action " + err);
+          console.log("Spark Action failed " + err);
       });
 });
 
@@ -109,10 +113,9 @@ function performAction(action, session) {
     });
 }
 
-
 var server = app.listen(port, function() {
     var host = server.address().address;
     var port = server.address().port;
 
-    console.log('All listening on %s:%s', host, port);
+    console.log('listening on %s:%s', host, port);
 });
