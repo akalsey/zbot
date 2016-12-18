@@ -1,0 +1,20 @@
+{
+  "name": "zmachine-tropo",
+  "version": "0.1.0",
+  "description": "Web service endpoint for zmachine games over Tropo sms",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.4.6",
+    "body-parser": "^1.15.2",
+    "ciscospark": "^0.7.27",
+    "express": "^4.14.0",
+    "request": "^2.79.0",
+    "request-promise": "^4.1.1",
+    "tropo-webapi": "^1.2.0"
+  }
+}
