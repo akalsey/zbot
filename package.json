@@ -15,6 +15,7 @@
     "express": "^4.14.0",
     "request": "^2.79.0",
     "request-promise": "^4.1.1",
-    "tropo-webapi": "^1.2.0"
+    "tropo-webapi": "^1.2.0",
+    "winston": "^2.3.0"
   }
 }

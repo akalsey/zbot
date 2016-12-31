@@ -1,0 +1,23 @@
+version: '2'
+services:
+  bot:
+    image: "akalsey/zbot"
+    ports:
+     - "80:80"
+    links:
+      - api
+    environment:
+      - PORT=80
+      - APIHOST=http://api:80/
+      - CISCOSPARK_ACCESS_TOKEN=YOUR-BOT-ACCESS-TOKEN
+      - LOG_LEVEL=debug
+  api:
+    image: "akalsey/zbot-api"
+    environment:
+      - PORT=80
+    volumes:
+      - zcode:/mnt/zcode
+
+volumes:
+  zcode:
+    external: true
