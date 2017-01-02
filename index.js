@@ -6,13 +6,14 @@ var troposdk = require('tropo-webapi');
 var util = require('util')
 var Promise = require("bluebird");
 var ciscospark = require("ciscospark");
-const winston = require('winston');
+var logger = require('winston');
 
 var app = express();
 
 var port = process.env.PORT || 5432;
 
-winston.level = process.env.LOG_LEVEL || 'warn';
+logger.level = process.env.LOG_LEVEL || 'warn';
+logger.log('debug', 'Logging at', process.env.LOG_LEVEL);
 
 var zmachine = process.env.APIHOST;
 
@@ -21,13 +22,14 @@ var sparkbotself = '';
 // Who am I? Allows me to ignore Spark messages sent by myself
 ciscospark.people.get('me')
   .then(me => {
-    winston.log('debug', 'My Spark data is ', me);
+    logger.log('debug', 'My Spark data is ', me);
     sparkbotself = me.id;
   })
   .catch(function (err) {
-    winston.log('error', "I don't know who I am on Spark.", err);
+    logger.log('error', "I don't know who I am on Spark.", err);
   });
 
+var defaultgame = process.env.DEFAULT_GAME || 'Zork';
 
 app.use(bodyParser.json()); // to support JSON-encoded bodies
 
@@ -35,31 +37,69 @@ app.use(bodyParser.json()); // to support JSON-encoded bodies
 // a different game.
 // Set your Tropo app to WebAPI with an app URL of <your-server>/tropo
 app.post('/tropo', function(req, res) {
-  winston.log('silly', 'Incoming Tropo message', req.body);
+  logger.log('silly', 'Incoming Tropo message', req.body);
+
     if (req.body.session.to.channel == 'TEXT') {
       var message = req.body.session.initialText;
       var session = req.body.session.from.e164Id;
 
       performAction(message, session)
         .then(reply => {
-          winston.log('debug', 'Tropo reply', {reply: reply, session: session});
           var tropo = new troposdk.TropoWebAPI();
-          tropo.say(reply);
-          var tropoML = troposdk.TropoJSON(tropo);
-          winston.log('silly', 'Sending TropoML', tropoML);
-          res.send(tropoML);
+          splittext(reply, 140, function(result) {
+            result.forEach(function(chunk) {
+              tropo.say(chunk);
+              tropo.wait(1000);
+            });
+            var tropoML = troposdk.TropoJSON(tropo);
+            logger.log('debug', 'Sending TropoML', tropoML);
+            res.send(tropoML);
+          });
         })
         .catch(function (err) {
-          winston.log('error', 'Tropo action failed', err);
+          logger.log('error', 'Tropo action failed', err);
         });
     } else {
-      winston.log('debug', 'Rejecting voice call');
+      logger.log('debug', 'Rejecting voice call');
       tropo.reject();
       var tropoML = troposdk.TropoJSON(tropo);
-      winston.log('silly', 'Sending TropoML', tropoML);
+      logger.log('silly', 'Sending TropoML', tropoML);
       res.send(tropoML);
     }
 });
+
+function splittext(text, length, callback) {
+  var tokenizer = require('sbd');
+  var sentences = tokenizer.sentences(text);
+  var result = [];
+  var stringcount = 0;
+  var tmpstring = '';
+  while(sentence = sentences.shift()) {
+    var s = tmpstring + sentence + ' ';
+    if (sentence.length >= length) {
+      // the sentence has no newlines and exceeds our length, so split it up in the middle
+      var parts = sentence.match(new RegExp('.{1,'+length+'}', "g")) || [];
+      result = result.concat(parts);
+    } else if (stringcount + s.length <= length) {
+      // adding this sentence won't cause us to exceed length
+      stringcount += s.length;
+      tmpstring = s;
+    } else {
+      // adding sentence would cause excessive length, push to result and reset
+      result.push(tmpstring);
+      stringcount = 0;
+      tmpstring = '';
+    }
+  }
+  // If last iteration left us with leftover content, add to the result
+  if (tmpstring.length) {
+    result.push(tmpstring);
+  }
+  logger.log('debug', 'reply chunked into ' + length + ' characters', result);
+
+  callback(result);
+  return result;
+}
 
 // A Cisco Spark message webhook listener. Each Spark room is treated as
 // a different game.
@@ -67,30 +107,38 @@ app.post('/tropo', function(req, res) {
 // an action of 'create' and no room filter
 // Set the env variable CISCOSPARK_ACCESS_TOKEN to your bot's access token
 app.post('/spark', function(req, res) {
-  winston.log('debug', 'Spark wehook', req.body);
+  logger.log('debug', 'Spark wehook', req.body);
 
     if (req.body.data.personId == sparkbotself) {
-      winston.log('silly', "It's my own message.");
+      logger.log('silly', "It's my own message.");
       return;
     }
 
     var session = req.body.data.roomId;
+    var sha1 = require('sha1');
 
     ciscospark.messages.get(req.body.data.id)
       .then(message => {
-        winston.log('debug', 'Spark message content', message);
-        // strip the mention & HTML from the message
-        var pattern = new RegExp('<spark-mention[^>]*data-object-id="' + sparkbotself + '"[^>]*>[^<]*<\/spark-mention>');
-        var action = message.html.replace(pattern,'');
-        action = action.replace(/<[^>]*>/g,'')
-        return performAction(action, session);
+        logger.log('debug', 'Spark message content', message);
+        // messages without mentions or markdown don't have HTML
+        if (message.html) {
+          // strip the mention & HTML from the message
+          var pattern = new RegExp('<spark-mention[^>]*data-object-id="' + sparkbotself + '"[^>]*>[^<]*<\/spark-mention>');
+          var action = message.html.replace(pattern,'');
+          action = action.replace(/<[^>]*>/g,'');
+        } else {
+          action = message.text;
+        }
+        // Spark room IDs are too long for Frotz to use as filenames
+        // shorten by hashing
+        return performAction(action, sha1(session));
       })
       .then(reply => {
         res.send(reply);
         return sparkmessage(reply, session);
       })
       .catch(function (err) {
-        winston.log('error', 'Spark action failed', err);
+        logger.log('error', 'Spark action failed', err);
       });
 });
 
@@ -100,26 +148,21 @@ app.post('/spark', function(req, res) {
 // an event of 'created' and a filter of personEmail = adventure@sparkbot.io
 // Set the env variable CISCOSPARK_ACCESS_TOKEN to your bot's access token
 app.post('/sparkroom', function(req, res) {
-  winston.log('debug', 'Spark wehook', req.body);
+  logger.log('debug', 'Spark wehook', req.body);
 
     var session = req.body.data.roomId;
-    var create = {
-      method: 'POST',
-      uri: zmachine + 'games/',
-      json: true
-    };
+    var sha1 = require('sha1');
 
-    create.body = { game: 'zork', label: session };
-    return rp(create)
-      .then(response => {
-        reply = response.data
-        winston.log('silly', 'zmachine reply', reply);
-        return sparkmessage(reply, session);
-      })
-      .catch(function (err) {
-        winston.log('error', 'Something went wrong', err);
-        return sparkmessage("Something went very wrong. It's not you, it's me.", session);
-      });
+    var introduction = "Oh, hello there!\n\nI'm a bot for playing text adventure games. Thanks for adding me to this room. I'm going to start a game of **" + defaultgame + "** now. Anyone can play. Just remember to @mention me when giving commands, so I know you're talking to me.";
+
+    return sparkmessage(introduction, session)
+    .then(reply => {
+      return performAction('look', sha1(session))
+    })
+    .then(reply => {
+      res.send(reply);
+      return sparkmessage(reply, session);
+    });
 });
 
 function sparkmessage(text, room) {
@@ -131,41 +174,68 @@ function sparkmessage(text, room) {
     text: text,
     roomId: room
   };
-  winston.log('debug', 'Sending message to Spark', message);
+  logger.log('debug', 'Sending message to Spark', message);
   return ciscospark.messages.create(message);
 }
 
 function performAction(action, session) {
   action = action.trim();
-  winston.log('silly', 'action requested', action);
+  logger.log('silly', 'action requested', action);
 
-  var find = {
-    method: 'GET',
-    uri: zmachine + 'games/',
-    json: true
+  var restore = {
+    method: 'POST',
+    json: true,
+    simple: false,
+    resolveWithFullResponse: true,
+    body: {file: "save"}
+  }
+
+  var save = {
+    method: 'POST',
+    json: true,
+    body: {file: "save"},
+    forever: true // solves a funky bug with some versions of node
+  }
+
+  var del = {
+    method: 'DELETE',
+    json: true,
+    forever: true // solves a funky bug with some versions of node
   }
 
   var act = {
     method: 'POST',
-    body: {
-        action: action
-    },
+    body: { action: action },
     json: true
   };
 
   var create = {
     method: 'POST',
     uri: zmachine + 'games/',
-    json: true
+    json: true,
+    body: { game: defaultgame.toLowerCase(), label: session },
+    forever: true // solves a funky bug with some versions of node
   };
 
-  return rp(find)
-    .then(body => {
-      winston.log('silly', 'games running ', body);
-      var game = body.find(o => o.label === session);
-      if (undefined != game && game.pid) {
-        winston.log('silly', 'Existing game found', game);
-        // there is a game already, send the action to it
+  var gameid;
+  var reply;
+
+  return rp(create)
+    .then(response => {
+      reply =  response.data;
+      gameid = response.pid;
+      logger.log('debug', 'Game spawned', response.pid);
+      logger.log('silly', 'Provisional reply', reply);
+
+      restore.uri = zmachine + 'games/' + gameid + '/restore';
+      logger.log('debug', 'Attempting to restore', restore);
+      return rp(restore);
+    })
+    .then(response => {
+      if (response.statusCode == '200') {
+        // game already exists
+        logger.log('debug', 'Found a game', response.body);
+        gameid = response.body.pid;
         switch (action.toLowerCase()) {
           case 'quit':
           case 'save':
@@ -173,27 +243,50 @@ function performAction(action, session) {
           case 'restart':
           case 'script':
           case 'unscript':
-            return {data: "Sorry, I can't do that."};
+            reply = "Sorry, I can't do that.";
+            logger.log('silly', 'Provisional reply', reply);
+            return reply;
           case '/game':
-            return {data: "Not yet."};
+            reply = "Not yet.";
+            logger.log('silly', 'Provisional reply', reply);
+            return reply;
         }
-        act.uri = zmachine + 'games/' + game.pid + '/action';
+        act.uri = zmachine + 'games/' + gameid + '/action';
         act.body = {action: action};
-        return rp(act);
+        return rp(act)
+          .then(response => {
+            reply = response.data;
+            logger.log('silly', 'Provisional reply', reply);
+          })
+          .catch(function (err) {
+            logger.log('error', 'Something went wrong', err);
+            reply = "Something went very wrong. It's not you, it's me.";
+            logger.log('silly', 'Provisional reply', reply);
+          });
       } else {
-        // start a new game & return the intro
-        winston.log('silly', 'No game found, starting new one.', body);
-        create.body = { game: 'zork', label: session };
-        return rp(create);
+        // game isn't saved, return the intro
+        logger.log('debug', 'New game', response.body);
+        logger.log('silly', 'Provisional reply', reply);
+        return response;
       }
     })
     .then(response => {
-      reply = response.data
-      winston.log('silly', 'zmachine reply', reply);
+      logger.log('debug', 'saving game', gameid);
+      save.uri = zmachine + 'games/' + gameid + '/save';
+      var r = rp(save);
+      logger.log('debug', 'saved game', gameid);
+      return response;
+    })
+    .then(response =>  {
+      logger.log('debug', 'tearing down game', gameid);
+      del.uri = zmachine + 'games/' + gameid;
+      var r = rp(del);
+      logger.log('debug', 'spun down game', gameid);
+      logger.log('debug', 'Replying', reply);
       return reply;
     })
     .catch(function (err) {
-      winston.log('error', 'Something went wrong', err);
+      logger.log('error', 'Something went wrong', err);
       return "Something went very wrong. It's not you, it's me."
     });
 }
@@ -202,5 +295,5 @@ var server = app.listen(port, function() {
     var host = server.address().address;
     var port = server.address().port;
 
-    winston.log('info', 'listening', {host: host, port: port});
+    logger.log('info', 'listening', {host: host, port: port});
 });

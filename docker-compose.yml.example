@@ -3,21 +3,25 @@ services:
   bot:
     image: "akalsey/zbot"
     ports:
-     - "80:80"
+     - "3000:3000"
     links:
       - api
     environment:
-      - PORT=80
+      - PORT=3000
       - APIHOST=http://api:80/
       - CISCOSPARK_ACCESS_TOKEN=YOUR-BOT-ACCESS-TOKEN
       - LOG_LEVEL=debug
+      - DEFAULT_GAME=Zork
   api:
     image: "akalsey/zbot-api"
     environment:
       - PORT=80
     volumes:
-      - zcode:/mnt/zcode
+      - zcode:/root/zcode
+      - zsaves:/root/saves
 
 volumes:
   zcode:
+    external: true
+  zsaves:
     external: true

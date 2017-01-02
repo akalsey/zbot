@@ -1,5 +1,5 @@
 {
-  "name": "zmachine-tropo",
+  "name": "zbot",
   "version": "0.1.0",
   "dependencies": {
     "@ciscospark/common": {
@@ -234,6 +234,11 @@
       "from": "btoa@>=1.1.2 <2.0.0",
       "resolved": "https://registry.npmjs.org/btoa/-/btoa-1.1.2.tgz"
     },
+    "buffer-shims": {
+      "version": "1.0.0",
+      "from": "buffer-shims@>=1.0.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/buffer-shims/-/buffer-shims-1.0.0.tgz"
+    },
     "bytes": {
       "version": "2.4.0",
       "from": "bytes@2.4.0",
@@ -248,6 +253,11 @@
       "version": "1.1.3",
       "from": "chalk@>=1.1.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/chalk/-/chalk-1.1.3.tgz"
+    },
+    "charenc": {
+      "version": "0.0.2",
+      "from": "charenc@>=0.0.1",
+      "resolved": "https://registry.npmjs.org/charenc/-/charenc-0.0.2.tgz"
     },
     "ciscospark": {
       "version": "0.7.27",
@@ -314,6 +324,11 @@
       "from": "core-util-is@>=1.0.0 <1.1.0",
       "resolved": "https://registry.npmjs.org/core-util-is/-/core-util-is-1.0.2.tgz"
     },
+    "crypt": {
+      "version": "0.0.2",
+      "from": "crypt@>=0.0.1",
+      "resolved": "https://registry.npmjs.org/crypt/-/crypt-0.0.2.tgz"
+    },
     "cryptiles": {
       "version": "2.0.5",
       "from": "cryptiles@>=2.0.0 <3.0.0",
@@ -371,10 +386,37 @@
       "from": "detective@>=4.3.1 <5.0.0",
       "resolved": "https://registry.npmjs.org/detective/-/detective-4.3.2.tgz"
     },
+    "dom-serializer": {
+      "version": "0.1.0",
+      "from": "dom-serializer@>=0.0.0 <1.0.0",
+      "resolved": "https://registry.npmjs.org/dom-serializer/-/dom-serializer-0.1.0.tgz",
+      "dependencies": {
+        "domelementtype": {
+          "version": "1.1.3",
+          "from": "domelementtype@>=1.1.1 <1.2.0",
+          "resolved": "https://registry.npmjs.org/domelementtype/-/domelementtype-1.1.3.tgz"
+        }
+      }
+    },
     "dom-walk": {
       "version": "0.1.1",
       "from": "dom-walk@>=0.1.0 <0.2.0",
       "resolved": "https://registry.npmjs.org/dom-walk/-/dom-walk-0.1.1.tgz"
+    },
+    "domelementtype": {
+      "version": "1.3.0",
+      "from": "domelementtype@>=1.3.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/domelementtype/-/domelementtype-1.3.0.tgz"
+    },
+    "domhandler": {
+      "version": "2.3.0",
+      "from": "domhandler@>=2.3.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/domhandler/-/domhandler-2.3.0.tgz"
+    },
+    "domutils": {
+      "version": "1.5.1",
+      "from": "domutils@>=1.5.1 <2.0.0",
+      "resolved": "https://registry.npmjs.org/domutils/-/domutils-1.5.1.tgz"
     },
     "ecc-jsbn": {
       "version": "0.1.1",
@@ -391,6 +433,11 @@
       "version": "1.0.1",
       "from": "encodeurl@>=1.0.1 <1.1.0",
       "resolved": "https://registry.npmjs.org/encodeurl/-/encodeurl-1.0.1.tgz"
+    },
+    "entities": {
+      "version": "1.1.1",
+      "from": "entities@>=1.1.1 <2.0.0",
+      "resolved": "https://registry.npmjs.org/entities/-/entities-1.1.1.tgz"
     },
     "envify": {
       "version": "3.4.1",
@@ -543,6 +590,23 @@
       "version": "2.16.3",
       "from": "hoek@>=2.0.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/hoek/-/hoek-2.16.3.tgz"
+    },
+    "htmlparser2": {
+      "version": "3.9.2",
+      "from": "htmlparser2@>=3.9.0 <4.0.0",
+      "resolved": "https://registry.npmjs.org/htmlparser2/-/htmlparser2-3.9.2.tgz",
+      "dependencies": {
+        "isarray": {
+          "version": "1.0.0",
+          "from": "isarray@>=1.0.0 <1.1.0",
+          "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz"
+        },
+        "readable-stream": {
+          "version": "2.2.2",
+          "from": "readable-stream@>=2.0.2 <3.0.0",
+          "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.2.2.tgz"
+        }
+      }
     },
     "http-errors": {
       "version": "1.5.1",
@@ -851,6 +915,11 @@
       "from": "process@>=0.5.1 <0.6.0",
       "resolved": "https://registry.npmjs.org/process/-/process-0.5.2.tgz"
     },
+    "process-nextick-args": {
+      "version": "1.0.7",
+      "from": "process-nextick-args@>=1.0.6 <1.1.0",
+      "resolved": "https://registry.npmjs.org/process-nextick-args/-/process-nextick-args-1.0.7.tgz"
+    },
     "proxy-addr": {
       "version": "1.1.2",
       "from": "proxy-addr@>=1.1.2 <1.2.0",
@@ -908,6 +977,11 @@
       "from": "regenerator-runtime@>=0.10.0 <0.11.0",
       "resolved": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.10.1.tgz"
     },
+    "regexp-quote": {
+      "version": "0.0.0",
+      "from": "regexp-quote@0.0.0",
+      "resolved": "https://registry.npmjs.org/regexp-quote/-/regexp-quote-0.0.0.tgz"
+    },
     "request": {
       "version": "2.79.0",
       "from": "request@latest",
@@ -929,6 +1003,16 @@
       "version": "1.1.1",
       "from": "request-promise-core@1.1.1",
       "resolved": "https://registry.npmjs.org/request-promise-core/-/request-promise-core-1.1.1.tgz"
+    },
+    "sanitize-html": {
+      "version": "1.13.0",
+      "from": "sanitize-html@>=1.11.2 <2.0.0",
+      "resolved": "https://registry.npmjs.org/sanitize-html/-/sanitize-html-1.13.0.tgz"
+    },
+    "sbd": {
+      "version": "1.0.11",
+      "from": "sbd@latest",
+      "resolved": "https://registry.npmjs.org/sbd/-/sbd-1.0.11.tgz"
     },
     "sdp": {
       "version": "1.0.2",
@@ -954,6 +1038,11 @@
       "version": "1.0.2",
       "from": "setprototypeof@1.0.2",
       "resolved": "https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.0.2.tgz"
+    },
+    "sha1": {
+      "version": "1.1.1",
+      "from": "sha1@latest",
+      "resolved": "https://registry.npmjs.org/sha1/-/sha1-1.1.1.tgz"
     },
     "sntp": {
       "version": "1.0.9",
@@ -1067,6 +1156,11 @@
       "version": "1.0.0",
       "from": "unpipe@>=1.0.0 <1.1.0",
       "resolved": "https://registry.npmjs.org/unpipe/-/unpipe-1.0.0.tgz"
+    },
+    "util-deprecate": {
+      "version": "1.0.2",
+      "from": "util-deprecate@>=1.0.1 <1.1.0",
+      "resolved": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz"
     },
     "utils-merge": {
       "version": "1.0.0",
