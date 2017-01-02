@@ -162,6 +162,9 @@ app.post('/sparkroom', function(req, res) {
     .then(reply => {
       res.send(reply);
       return sparkmessage(reply, session);
+    })
+    .catch(function (err) {
+      logger.log('error', 'sparkroom error', err);
     });
 });
 
@@ -296,4 +299,12 @@ var server = app.listen(port, function() {
     var port = server.address().port;
 
     logger.log('info', 'listening', {host: host, port: port});
+  }).on('error', function(err){
+      console.log('on error handler');
+      console.log(err);
+});
+
+process.on('uncaughtException', function(err) {
+    console.log('process.on handler');
+    console.log(err);
 });
