@@ -1,3 +1,0 @@
-[submodule "zmachine-api"]
-	path = zmachine-api
-	url = git@github.com:akalsey/zmachine-api.git
