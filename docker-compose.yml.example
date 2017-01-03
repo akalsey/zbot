@@ -13,7 +13,7 @@ services:
       - LOG_LEVEL=warn
       - DEFAULT_GAME=Zork
   api:
-    image: "akalsey/zbot-api"
+    image: "akalsey/zmachine-api"
     environment:
       - PORT=80
     volumes:
