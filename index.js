@@ -49,7 +49,7 @@ app.post('/tropo', function(req, res) {
           splittext(reply, 140, function(result) {
             result.forEach(function(chunk) {
               tropo.say(chunk);
-              tropo.wait(1000);
+              tropo.wait(500);
             });
             var tropoML = troposdk.TropoJSON(tropo);
             logger.log('debug', 'Sending TropoML', tropoML);
@@ -230,8 +230,6 @@ function performAction(action, session) {
       reply =  response.data;
       gameid = response.pid;
       logger.log('debug', 'Game spawned', response.pid);
-      logger.log('silly', 'Provisional reply', reply);
-
       restore.uri = zmachine + 'games/' + gameid + '/restore';
       logger.log('debug', 'Attempting to restore', restore);
       return rp(restore);
@@ -249,61 +247,55 @@ function performAction(action, session) {
           case 'script':
           case 'unscript':
             reply = "Sorry, I can't do that.";
-            logger.log('silly', 'Provisional reply', reply);
-            return reply;
+            return response;
           case '/game':
             reply = "Not yet.";
-            logger.log('silly', 'Provisional reply', reply);
-            return reply;
+            return response;
         }
         act.uri = zmachine + 'games/' + gameid + '/action';
         act.body = {action: action};
         return rp(act)
           .then(response => {
             reply = response.data;
-            logger.log('silly', 'Provisional reply', reply);
+            logger.log('debug', 'saving game', gameid);
+            save.uri = zmachine + 'games/' + gameid + '/save';
+            return rp(save);
+          })
+          .then(response =>  {
+            logger.log('debug', 'tearing down game', gameid);
+            del.uri = zmachine + 'games/' + gameid;
+            rp(del);
+            return reply;
           })
           .catch(function (err) {
             logger.log('error', 'Something went wrong', err);
             reply = "Something went very wrong. It's not you, it's me.";
-            logger.log('silly', 'Provisional reply', reply);
           });
       } else {
         // game isn't saved, return the intro
         logger.log('debug', 'New game', response.body);
-        logger.log('silly', 'Provisional reply', reply);
         return response;
       }
     })
-    .then(response => {
-      logger.log('debug', 'saving game', gameid);
-      save.uri = zmachine + 'games/' + gameid + '/save';
-      var r = rp(save);
-      logger.log('debug', 'saved game', gameid);
-      return response;
-    })
-    .then(response =>  {
-      logger.log('debug', 'tearing down game', gameid);
-      del.uri = zmachine + 'games/' + gameid;
-      var r = rp(del);
-      logger.log('debug', 'spun down game', gameid);
-      logger.log('debug', 'Replying', reply);
-      return reply;
-    })
     .catch(function (err) {
       logger.log('error', 'Something went wrong', err);
-      return "Something went very wrong. It's not you, it's me."
+      reply = "Something went very wrong. It's not you, it's me."
+    })
+    .finally(function(response) {
+      logger.log('debug', 'Replying', reply);
+      return reply;
     });
 }
 
 var server = app.listen(port, function() {
-    var host = server.address().address;
-    var port = server.address().port;
+  var host = server.address().address;
+  var port = server.address().port;
 
-    logger.log('info', 'listening', {host: host, port: port});
-  }).on('error', function(err){
-      console.log('on error handler');
-      console.log(err);
+  logger.log('info', 'listening', {host: host, port: port});
+  })
+  .on('error', function(err){
+    console.log('on error handler');
+    console.log(err);
 });
 
 process.on('uncaughtException', function(err) {
