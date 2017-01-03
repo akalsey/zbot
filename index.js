@@ -26,7 +26,7 @@ ciscospark.people.get('me')
     sparkbotself = me.id;
   })
   .catch(function (err) {
-    logger.log('error', "I don't know who I am on Spark.", err);
+    logger.log('warn', "I don't know who I am on Spark.", err);
   });
 
 var defaultgame = process.env.DEFAULT_GAME || 'Zork';
@@ -68,6 +68,8 @@ app.post('/tropo', function(req, res) {
     }
 });
 
+// Split text into *lenght* sized chunks, attempting to split on
+// sentence boundaries if possible.
 function splittext(text, length, callback) {
   var tokenizer = require('sbd');
   var sentences = tokenizer.sentences(text);
@@ -227,6 +229,7 @@ function performAction(action, session) {
 
   return rp(create)
     .then(response => {
+      // Game spawned, sttore the response in case it's a new game
       reply =  response.data;
       gameid = response.pid;
       logger.log('debug', 'Game spawned', response.pid);
@@ -239,6 +242,7 @@ function performAction(action, session) {
         // game already exists
         logger.log('debug', 'Found a game', response.body);
         gameid = response.body.pid;
+        // Block actions that make no sense in this context.
         switch (action.toLowerCase()) {
           case 'quit':
           case 'save':
@@ -254,17 +258,18 @@ function performAction(action, session) {
         }
         act.uri = zmachine + 'games/' + gameid + '/action';
         act.body = {action: action};
+        save.uri = zmachine + 'games/' + gameid + '/save';
+        del.uri = zmachine + 'games/' + gameid;
+        // Send the player's command to zmachine, store the game's response
         return rp(act)
           .then(response => {
             reply = response.data;
             logger.log('debug', 'saving game', gameid);
-            save.uri = zmachine + 'games/' + gameid + '/save';
-            return rp(save);
+            return rp(save); // save the game
           })
           .then(response =>  {
             logger.log('debug', 'tearing down game', gameid);
-            del.uri = zmachine + 'games/' + gameid;
-            rp(del);
+            rp(del); // tear down the zmachine
             return reply;
           })
           .catch(function (err) {
@@ -272,7 +277,7 @@ function performAction(action, session) {
             reply = "Something went very wrong. It's not you, it's me.";
           });
       } else {
-        // game isn't saved, return the intro
+        // game isn't saved, so it's a new game, we're done
         logger.log('debug', 'New game', response.body);
         return response;
       }
@@ -282,6 +287,7 @@ function performAction(action, session) {
       reply = "Something went very wrong. It's not you, it's me."
     })
     .finally(function(response) {
+      // Return whatever is stored in `reply`
       logger.log('debug', 'Replying', reply);
       return reply;
     });
