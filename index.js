@@ -190,7 +190,8 @@ function performAction(action, session) {
     json: true,
     simple: false,
     resolveWithFullResponse: true,
-    body: {file: "save"}
+    body: {file: "save"},
+    forever: true // solves a funky bug with some versions of node
   }
 
   var save = {
@@ -209,7 +210,8 @@ function performAction(action, session) {
   var act = {
     method: 'POST',
     body: { action: action },
-    json: true
+    json: true,
+    forever: true // solves a funky bug with some versions of node
   };
 
   var create = {
