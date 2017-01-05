@@ -21,8 +21,12 @@ to textadventure@sparkbot.io.
 
 *You're in an SMS client. There's a phone number here.*
 
-Send a text message to +1-234-208-5997 to play Zork over SMS, powered by
-[Tropo](https://www.tropo.com).
+If you're in the US or Canada, you can send a text message to +1-844-373-9675 to
+play Zork over SMS, powered by [Tropo](https://www.tropo.com). Outside the US,
+try +1-541-936-9675, but this has a lower capacity and may not work as well during
+busy times.
+
+In either case, your carrier's normal text or data rates apply.
 
 ## Configuring your own
 
