@@ -135,6 +135,7 @@ app.post('/spark', function(req, res) {
       .catch(function (err) {
         logger.log('silly', 'catching error', err);
         writelog('error', 'Spark action failed', err);
+        logger.log('error', 'Spark that caused this error', req.body);
         res.status(500).send("Something went very wrong. It's not you, it's me.");
         return sparkmessage("Something went very wrong. It's not you, it's me.`", session);
       });
