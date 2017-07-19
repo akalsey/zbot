@@ -8,6 +8,7 @@ ENV NODE_PATH /root
 EXPOSE ${PORT}
 
 RUN useradd --user-group --create-home --shell /bin/false app
+RUN npm install supervisor -g
 COPY package.json npm-shrinkwrap.json $NODE_PATH/
 RUN chown -R app:app $NODE_PATH
 USER app
@@ -16,4 +17,4 @@ RUN npm install
 
 COPY index.js $NODE_PATH/
 
-CMD ["node","/root/index.js"]
+CMD ["supervisor","index.js"]
