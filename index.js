@@ -134,8 +134,7 @@ app.post('/spark', function(req, res) {
       })
       .catch(function (err) {
         logger.log('silly', 'catching error', err);
-        writelog('error', 'Spark action failed', err);
-        logger.log('error', 'Spark that caused this error', req.body);
+        writelog('error', 'Spark action failed', err, reply, req.body);
         res.status(500).send("Something went very wrong. It's not you, it's me.");
         return sparkmessage("Something went very wrong. It's not you, it's me.`", session);
       });
@@ -145,6 +144,7 @@ function writelog(level, message, data) {
   logger.log(level, message, data);
   if (process.env.ADMIN && level == "error") {
     var text = level + ' - ' + message + ' ' + util.inspect(data, {showHidden: false, depth: null});
+    text = text.substring(0, 7439);
     var message = {
       text: text,
       toPersonEmail: process.env.ADMIN
@@ -152,7 +152,7 @@ function writelog(level, message, data) {
     return ciscospark.messages.create(message)
     .catch(function (err) {
       logger.log('silly', 'catching error', err);
-      logger.log('error', 'Spark action failed', err);
+      logger.log('error', 'Spark action failed', err, message);
     });;
   }
 }
@@ -168,7 +168,7 @@ app.post('/sparkroom', function(req, res) {
     var session = req.body.data.roomId;
     var sha1 = require('sha1');
 
-    var introduction = "Oh, hello there!\n\nI'm a bot for playing text adventure games. Thanks for adding me to this room. I'm going to start a game of **" + defaultgame + "** now. Anyone can play. Just remember to @mention me when giving commands, so I know you're talking to me.";
+    var introduction = "Oh, hello there!\n\nI'm a bot for playing text adventure games. Thanks for adding me to this space. I'm going to start a game of **" + defaultgame + "** now. Anyone can play. Just remember to @mention me when giving commands, so I know you're talking to me.";
 
     return sparkmessage(introduction, session)
     .then(reply => {
