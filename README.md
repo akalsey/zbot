@@ -121,8 +121,8 @@ the bot doesn't come with any games. You'll need to download some yourself and c
 them to the zcode Volume (if using Docker) or the "games" directory of the z-machine
 API application (if not using Docker).
 
-You can find games to install in a number of places online. Try (IFDB)[http://ifdb.tads.org/]
-or (Interactive Fiction Archive)[http://www.ifarchive.org/] to get started.
+You can find games to install in a number of places online. Try [IFDB](http://ifdb.tads.org/)
+or [Interactive Fiction Archive](http://www.ifarchive.org/) to get started.
 
 Infocom has also made [Zork 1-3 available for free](http://www.infocom-if.org/downloads/downloads.html)
 online. When you download and uzip these games (don't download the Mac version,
