@@ -141,8 +141,6 @@ lifting for the bot.
 
 The bot relies on a REST API frontend to frotz called
 [zmachine-api](https://github.com/opendns/zmachine-api/). The version used by zbot
-is heavily modified to have some more robust error handling and to disable the
-default usage of S3 for file storage. The modified version can be found in the
-["deploy" branch of my forked Github repo](https://github.com/akalsey/zmachine-api/).
-Pull requests have been sent, so hopefully this modified branch can go away
-eventually.  
+is modified to add a couple of new APIs and improve logging. The modified version
+can be found in the ["deploy" branch of my forked Github repo](https://github.com/akalsey/zmachine-api/). Pull requests have been sent, so
+hopefully this modified branch can go away eventually.  
