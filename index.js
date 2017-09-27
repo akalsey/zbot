@@ -71,27 +71,18 @@ app.post('/tropo', function(req, res) {
 
 // A health check URL.  Does a self diagnostic and tells what might be wrong
 app.get('/healthcheck', function(req, res) {
+  var errors = [];
+  var msg = [];
   ciscospark.people.get('me')
-    .then(me => {
-      res.send('Spark API OK')
-      logger.log('debug', 'HEALTH I am', me);
+    .then(function() {
+      return rp(zmachine + 'titles/');
+    })
+    .then(function(){
+      res.send("Everything's fine");
     })
     .catch(function (err) {
       logger.log('warn', "HEALTH something is wrong.", err);
-      res.send('Spark API ERROR ' + err);
-    });
-
-    request(zmachine + 'titles/', function (error, response, body) {
-      if (error) {
-        writelog('warn', "HEALTH something is wrong.", error);
-        res.send('zmachine API connection ERROR');
-      } else if (response.statusCode != 200) {
-        writelog('warn', "HEALTH something is wrong.", response.statusCode);
-        res.send('zmachine API ERROR');
-      } else {
-        logger.log('debug', "HEALTH API OK");
-        res.send('zmachine API OK');
-      }
+      res.status(500).send('Something is wrong ' + err);
     });
 });
 
