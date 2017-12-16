@@ -4,7 +4,7 @@ var rp = require('request-promise');
 var request = require('request');
 var troposdk = require('tropo-webapi');
 var util = require('util')
-var Promise = require("bluebird");
+//var Promise = require("bluebird");
 var ciscospark = require("ciscospark");
 var logger = require('winston');
 var textchunk = require('textchunk');
@@ -74,15 +74,25 @@ app.get('/healthcheck', function(req, res) {
   var errors = [];
   var msg = [];
   ciscospark.people.get('me')
-    .then(function() {
-      return rp(zmachine + 'titles/');
+    .then(me => {
+      msg.push('I am ' + me.emails[0]);
+      return rp(zmachine + 'titles/')
+        .then(titles => {
+          msg.push('Available games: ' + titles);
+        })
+        .catch(err => {
+          logger.log('warn', "something is wrong getting game titles in health checker.", err);
+          res.status(500)
+          msg.push('ERROR Can not get game titles ' + err);
+        });
     })
-    .then(function(){
-      res.send("Everything's fine");
-    })
-    .catch(function (err) {
+    .catch(err => {
       logger.log('warn', "HEALTH something is wrong.", err);
-      res.status(500).send('Something is wrong ' + err);
+      res.status(500)
+      msg.push('ERROR Something is wrong ' + err);
+    })
+    .then(function() {
+      res.send(msg.join("<br/>\n"));
     });
 });
 
@@ -230,7 +240,7 @@ function performAction(action, session) {
     method: 'POST',
     uri: zmachine + 'games/',
     json: true,
-    body: { game: defaultgame.toLowerCase(), label: session },
+    body: { game: defaultgame, label: session },
     forever: true // solves a funky bug with some versions of node
   };
 
